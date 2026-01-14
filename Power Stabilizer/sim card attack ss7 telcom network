@@ -1,0 +1,135 @@
+# SS7 & SIM Security Notes
+
+This file is a **conceptual lab notebook** for future work around:
+
+- SIM attacks (SIM swapping / port-out fraud)
+- SS7 signaling weaknesses
+- How these fit into a broader account-takeover threat model
+- High-level defenses and design implications
+
+It is **not** a guide for exploitation and contains no operational instructions.
+
+---
+
+## 1. SS7: what it is in one paragraph
+
+**SS7 (Signaling System No. 7)** is the legacy global telecom signaling system used by carriers to:
+
+- set up and tear down calls  
+- route SMS  
+- support roaming  
+- manage number portability  
+- run billing and network queries  
+
+Think of it as the **control plane** of classic telephony: it doesn’t carry your voice or data, it tells the network *how* to connect everything.
+
+Despite newer protocols (e.g., Diameter in LTE/4G/5G), SS7 is still heavily used, especially for interoperability and roaming.
+
+---
+
+## 2. Core SS7 security problem
+
+SS7 was designed in a “trusted carrier” world:
+
+- little or no authentication between operators  
+- no cryptographic protection at the signaling level  
+- any network participant is assumed to be honest  
+
+Today, that assumption is false:
+
+- more carriers, MVNOs, and intermediaries  
+- potential for rogue or compromised participants  
+- black/grey‑market access to signaling infrastructure  
+
+**Key issue:**  
+> Once an actor is on the SS7 network, they can send powerful signaling messages that many networks still trust.
+
+---
+
+## 3. High-level abuse categories (conceptual only)
+
+These are *types of misuse*, not how‑to steps.
+
+**1. Location tracking**
+
+- Abusing “where is this subscriber?” queries  
+- Returns approximate location (cell tower / region)
+
+**2. SMS routing abuse**
+
+- Manipulating signaling to reroute SMS messages  
+- Can impact delivery of one-time codes / notifications
+
+**3. Call redirection**
+
+- Requests to forward calls for a number to another endpoint  
+- Can be combined with social engineering or fraud
+
+**4. Metadata monitoring**
+
+- Inferring who is calling whom, when, and from where  
+- Even without content, this can map social graphs and patterns
+
+**5. Coordination with SIM attacks**
+
+- SS7 can be used to confirm SIM changes, monitor status, or influence routing  
+- Can serve as a “force multiplier” for account-takeover campaigns
+
+---
+
+## 4. SIM attacks: where they fit
+
+A **SIM attack / SIM swap** typically involves:
+
+- convincing a carrier to move a victim’s number to an attacker-controlled SIM  
+- taking over calls and SMS for that number  
+- using intercepted SMS (2FA codes, password resets) to compromise accounts
+
+SS7 is **not required** for SIM swaps, but:
+
+- SS7 weaknesses can help with interception and timing  
+- combined, they can form a powerful chain for account takeover
+
+---
+
+## 5. Defensive posture (individual level)
+
+For an individual user, the most robust moves are:
+
+- **Use app-based or hardware-based 2FA**  
+  - Avoid SMS as the only factor when possible  
+- **Set a carrier account PIN / port-out lock**  
+  - Make SIM changes require extra proof  
+- **Monitor for unexpected loss of service or SIM-change alerts**  
+  - Sudden “no service” can be a red flag  
+- **Treat SMS codes as highly sensitive**  
+  - Never share verification codes with anyone
+
+---
+
+## 6. Defensive posture (system / design level)
+
+For systems designers and future work:
+
+- **Assume SMS and phone numbers are semi-compromised channels**
+  - Treat them as *weak* factors, not strong authentication
+- **Prefer multi-factor authentication with independent channels**
+  - Password + TOTP + hardware key + in-app confirmation, etc.
+- **Log and alert on risky changes**
+  - New device, new IP, SIM change, carrier change, location anomalies
+- **Consider telecom abstraction layers**
+  - Don’t bind identity too strongly to a single phone number
+
+---
+
+## 7. Future directions for this repo
+
+Possible future additions (non-operational):
+
+- Diagrams of SS7 / LTE / 5G signaling flows  
+- Threat models that show how SIM swap + SS7 + phishing interact  
+- Design patterns for “resilient identity” not anchored solely to phone numbers  
+- Links to public research, standards efforts, and telecom security best practices
+
+> **Principle:**  
+> Treat SS7 and SIM issues as *environmental risk* when designing identity and security, not as a playground for exploitation.
